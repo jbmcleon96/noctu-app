@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { db, storage } from "../firebase";
 import {
@@ -27,6 +26,7 @@ type FirestoreDateLike =
   | undefined;
 
 interface Profile {
+  role?: string;
   displayName?: string;
   username?: string;
   photoURL?: string;
@@ -137,8 +137,7 @@ function formatTime(value: FirestoreDateLike, options?: Intl.DateTimeFormatOptio
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
+  
   const profileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -159,9 +158,15 @@ export default function Dashboard() {
 
   const uid = user?.uid ?? "";
 
+  const MEMBER_PRICE_IDS: Record<string, string> = {
+    starter: "price_1TlYvfBprLkwkiEd4eJzkZUU",
+    elite: "price_1TlYvYBprLkwkiEdexU2z1Rl",
+    vip: "price_1TlYvcBprLkwkiEdp4vI7kEP",
+  };
+
   async function startCheckout(plan: "starter" | "vip" | "elite") {
-  if (!uid || !user?.email) {
-    alert("Please sign in again.");
+  if (!uid) {
+    window.location.href = "/signin";
     return;
   }
 
@@ -174,9 +179,9 @@ export default function Dashboard() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        plan,
-        uid,
-        email: user.email,
+        priceId: MEMBER_PRICE_IDS[plan],
+        userType: "member",
+        email: user?.email ?? "",
       }),
     });
 
@@ -216,7 +221,7 @@ export default function Dashboard() {
           });
           setUsernameInput(data.username ?? "");
           setBirthdayInput(data.birthday ?? "");
-          if (!data.username) setShowUsernameModal(true);
+          if (!data.username && data.role !== "owner") setShowUsernameModal(true);
         } else {
           const starterProfile: Profile = {
             displayName: user?.displayName ?? "",
@@ -237,7 +242,7 @@ export default function Dashboard() {
           });
 
           setProfile(starterProfile);
-          setShowUsernameModal(true);
+          if (!starterProfile.username) setShowUsernameModal(true);
         }
 
         const actSnap = await getDocs(
@@ -951,7 +956,7 @@ export default function Dashboard() {
             <button
               onClick={async () => {
                 await logout();
-                navigate("/");
+                window.location.href = "/signin";
               }}
               style={{ width: "100%", padding: "14px", background: "transparent", border: "1px solid #3a0055", borderRadius: 12, color: "#888", fontSize: 15, cursor: "pointer", marginBottom: 8 }}
             >
