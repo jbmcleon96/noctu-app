@@ -5,15 +5,20 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  updateProfile,
 } from "firebase/auth";
 import type { User } from "firebase/auth";
-import { auth, db } from "../firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth } from "../firebase";
+
+interface MemberSignUpOptions {
+  displayName?: string;
+  birthday?: string;
+}
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, role?: string) => Promise<void>;
+  signUp: (email: string, password: string, role?: string, options?: MemberSignUpOptions) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -38,41 +43,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsub;
   }, []);
 
-  async function signUp(email: string, password: string, role: string = "member") {
+  async function signUp(
+    email: string,
+    password: string,
+    _role: string = "member",
+    options: MemberSignUpOptions = {}
+  ) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
-    if (role === "owner") {
-      // Create a placeholder user doc for owner (club doc created in onboarding)
-      await setDoc(doc(db, "users", uid), {
-        email,
-        role: "owner",
-        createdAt: serverTimestamp(),
-      });
-    } else {
-      // Member default setup
-      const referralCode = uid.slice(0, 8).toUpperCase();
-      await setDoc(doc(db, "users", uid), {
-        email,
-        role: "member",
-        displayName: "",
-        username: "",
-        photoURL: "",
-        points: 100,
-        tier: "Access",
-        subscription: "free",
-        referralCode,
-        birthday: "",
-        createdAt: serverTimestamp(),
-      });
+    console.log("AUTH USER CREATED:", uid);
 
-      // Welcome bonus activity
-      await setDoc(doc(db, "users", uid, "activity", "welcome"), {
-        type: "welcome",
-        points: 100,
-        description: "Welcome to Noctu! 🎉 +100 pts",
-        createdAt: serverTimestamp(),
-      });
+    if (options.displayName) {
+      await updateProfile(cred.user, { displayName: options.displayName });
+      console.log("PROFILE UPDATED");
     }
   }
 
