@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { db, storage } from "../firebase";
 import {
@@ -26,7 +27,6 @@ type FirestoreDateLike =
   | undefined;
 
 interface Profile {
-  role?: string;
   displayName?: string;
   username?: string;
   photoURL?: string;
@@ -137,13 +137,14 @@ function formatTime(value: FirestoreDateLike, options?: Intl.DateTimeFormatOptio
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
-  
+  const navigate = useNavigate();
+
   const profileInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [activeTab, setActiveTab] = useState(0);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [activity, setActivity] = useState<Activity[]>([]);
+ const [activity] = useState<Activity[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,30 +159,24 @@ export default function Dashboard() {
 
   const uid = user?.uid ?? "";
 
-  const MEMBER_PRICE_IDS: Record<string, string> = {
-    starter: "price_1TlYvfBprLkwkiEd4eJzkZUU",
-    elite: "price_1TlYvYBprLkwkiEdexU2z1Rl",
-    vip: "price_1TlYvcBprLkwkiEdp4vI7kEP",
-  };
-
   async function startCheckout(plan: "starter" | "vip" | "elite") {
-  if (!uid) {
-    window.location.href = "/signin";
+  if (!uid || !user?.email) {
+    alert("Please sign in again.");
     return;
   }
 
   setSavingSubscription(plan);
 
   try {
-    const response = await fetch("/api/create-checkout-session", {
+   const response = await fetch("/api/create-checkout-session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        priceId: MEMBER_PRICE_IDS[plan],
-        userType: "member",
-        email: user?.email ?? "",
+        plan,
+        uid,
+        email: user.email,
       }),
     });
 
@@ -199,12 +194,12 @@ export default function Dashboard() {
   } catch (e) {
     console.error("Checkout start error:", e);
     alert("Could not open Stripe checkout.");
-  } finally {
+    } finally {
     setSavingSubscription(null);
   }
 }
 
-  useEffect(() => {
+useEffect(() => {
     if (!user || !uid) {
       setLoading(false);
       return;
@@ -221,7 +216,7 @@ export default function Dashboard() {
           });
           setUsernameInput(data.username ?? "");
           setBirthdayInput(data.birthday ?? "");
-          if (!data.username && data.role !== "owner") setShowUsernameModal(true);
+          if (!data.username) setShowUsernameModal(true);
         } else {
           const starterProfile: Profile = {
             displayName: user?.displayName ?? "",
@@ -242,13 +237,10 @@ export default function Dashboard() {
           });
 
           setProfile(starterProfile);
-          if (!starterProfile.username) setShowUsernameModal(true);
+          setShowUsernameModal(true);
         }
 
-        const actSnap = await getDocs(
-          query(collection(db, "users", uid, "activity"), orderBy("createdAt", "desc"), limit(10))
-        );
-        setActivity(actSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Activity, "id">) })));
+    
 
         const clubSnap = await getDocs(collection(db, "clubs"));
         const userClubs: Club[] = [];
@@ -580,7 +572,7 @@ export default function Dashboard() {
                     <div
                       style={{
                         height: "100%",
-                        width: `${Math.max(0, Math.min(progress, 100))}`,
+                        width: `${Math.max(0, Math.min(progress, 100))}%`,
                         background: `linear-gradient(90deg, ${TIER_COLORS[currentTier] ?? "#888888"}, #BF00FF)`,
                         borderRadius: 3,
                       }}
@@ -612,47 +604,47 @@ export default function Dashboard() {
                 )}
 
                 {currentSubscription !== "vip" && (
-                  <button
-                    onClick={() => startCheckout("vip")}
-                    disabled={savingSubscription !== null}
-                    style={{
-                      width: "100%",
-                      padding: "10px 14px",
-                      borderRadius: 10,
-                      border: "1px solid #BF00FF",
-                      background: "#BF00FF22",
-                      color: "#BF00FF",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      opacity: savingSubscription ? 0.7 : 1,
-                    }}
-                  >
-                    {savingSubscription === "vip" ? "Saving..." : "Upgrade to VIP · $19.99/mo"}
-                  </button>
-                )}
+  <button
+    onClick={() => startCheckout("vip")}
+    disabled={savingSubscription !== null}
+    style={{
+      width: "100%",
+      padding: "10px 14px",
+      borderRadius: 999,
+      border: "1px solid rgba(191,0,255,0.35)",
+      background: "rgba(191,0,255,0.10)",
+      color: "#fff",
+      fontSize: 14,
+      fontWeight: 700,
+      cursor: "pointer",
+      opacity: savingSubscription !== null ? 0.7 : 1,
+    }}
+  >
+    {savingSubscription === "vip" ? "Saving..." : "Upgrade to VIP · $19.99/mo"}
+  </button>
+)}
+                    
+                    
 
                 {currentSubscription !== "elite" && (
-                  <button
-                    onClick={() => startCheckout("elite")}
-                    
-                    disabled={savingSubscription !== null}
-                    style={{
-                      width: "100%",
-                      padding: "10px 14px",
-                      borderRadius: 10,
-                      border: "1px solid #FFD700",
-                      background: "#FFD70022",
-                      color: "#FFD700",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      opacity: savingSubscription ? 0.7 : 1,
-                    }}
-                  >
-                    {savingSubscription === "elite" ? "Saving..." : "Upgrade to Elite · $49.99/mo"}
-                  </button>
-                )}
+  <button
+    disabled={savingSubscription !== null}
+    style={{
+      width: "100%",
+      padding: "10px 14px",
+      borderRadius: 10,
+      border: "1px solid #FFD700",
+      background: "#FFD70022",
+      color: "#FFD700",
+      fontWeight: 700,
+      cursor: "pointer",
+      opacity: savingSubscription === "elite" ? 0.7 : 1,
+    }}
+    onClick={() => startCheckout("elite")}
+  >
+    {savingSubscription === "elite" ? "Saving..." : "Upgrade to Elite · $49.99/mo"}
+  </button>
+)}
               </div>
             </div>
 
@@ -893,13 +885,13 @@ export default function Dashboard() {
             <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <div style={{ color: "#aaa", fontSize: 14 }}>Profile complete</div>
-                <div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>{Math.min(profileComplete, 100)}</div>
+                <div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>{Math.min(profileComplete, 100)}%</div>
               </div>
               <div style={{ height: 6, background: "#0a0015", borderRadius: 3, overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
-                    width: `${Math.min(profileComplete, 100)}`,
+                    width: `${Math.min(profileComplete, 100)}%`,
                     background: "linear-gradient(90deg, #BF00FF, #ff6b9d)",
                     borderRadius: 3,
                   }}
@@ -954,32 +946,68 @@ export default function Dashboard() {
             )}
 
             <button
-              onClick={async () => {
-                await logout();
-                window.location.href = "/signin";
-              }}
-              style={{ width: "100%", padding: "14px", background: "transparent", border: "1px solid #3a0055", borderRadius: 12, color: "#888", fontSize: 15, cursor: "pointer", marginBottom: 8 }}
-            >
-              Sign Out
-            </button>
+  onClick={async () => {
+    console.log("SIGN OUT CLICKED");
+    try {
+      await logout();
+      console.log("SIGNED OUT");
+      navigate("/");
+    } catch (error) {
+      console.error("SIGN OUT ERROR:", error);
+    }
+  }}
+  style={{ width: "100%", padding: "14px", background: "transparent", border: "1px solid #3a0055", borderRadius: 12, color: "#888", fontSize: 15, cursor: "pointer", marginBottom: 8 }}
+>
+  Sign Out
+</button>
           </div>
         )}
       </div>
 
-      <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#0d0018", borderTop: "1px solid #1a0030", display: "flex", justifyContent: "space-around", padding: "10px 0 16px", zIndex: 100 }}>
+            <div
+        style={{
+          position: "fixed",
+          bottom: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "100%",
+          maxWidth: 480,
+          background: "#0d0018",
+          borderTop: "1px solid #1a0030",
+          display: "flex",
+          justifyContent: "space-around",
+          padding: "10px 0 16px",
+          zIndex: 100,
+        }}
+      >
         {NAV.map((tab, i) => (
           <button
             key={tab.label}
             onClick={() => setActiveTab(i)}
-            style={{ background: "transparent", border: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, cursor: "pointer", padding: "4px 24px" }}
+            style={{
+              background: "transparent",
+              border: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 3,
+              cursor: "pointer",
+              padding: "4px 24px",
+            }}
           >
             <span style={{ fontSize: 22 }}>{tab.icon}</span>
-            <span style={{ fontSize: 10, color: activeTab === i ? "#BF00FF" : "#555", fontWeight: activeTab === i ? 700 : 400 }}>
+            <span
+              style={{
+                fontSize: 10,
+                color: activeTab === i ? "#BF00FF" : "#555",
+                fontWeight: activeTab === i ? 700 : 400,
+              }}
+            >
               {tab.label}
             </span>
           </button>
         ))}
       </div>
     </div>
-    );
+  );
 }

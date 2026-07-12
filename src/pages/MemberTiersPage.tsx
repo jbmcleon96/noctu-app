@@ -19,18 +19,70 @@ function NoctuHeader() {
 }
 
 const tiers = [
-  { id: 'starter', name: 'Starter', price: '$14.99', priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU', tagline: 'Get in the door', highlight: false,
-    perks: ['Access to all Noctu venues','QR check-in at the door','Points on every visit','Member-only event alerts','Basic rewards catalog'],
-    locked: ['Priority entry & skip-the-line','Bar scan rewards','Exclusive VIP lounge access'],
-    gradient: 'linear-gradient(135deg,rgba(191,0,255,0.08),rgba(139,92,246,0.05))', border: 'rgba(191,0,255,0.2)' },
-  { id: 'elite', name: 'Elite', price: '$29.99', priceId: 'price_1TlYvYBprLkwkiEdexU2z1Rl', tagline: 'Live the night right', highlight: true,
-    perks: ['Everything in Starter','Priority entry — skip the line','Bar scan drink rewards','Double points on weekends','Early access to events','Exclusive member mixers'],
-    locked: ['Dedicated VIP host','Table reservation priority'],
-    gradient: 'linear-gradient(135deg,rgba(191,0,255,0.18),rgba(139,92,246,0.12))', border: 'rgba(191,0,255,0.55)' },
-  { id: 'vip', name: 'VIP', price: '$49.99', priceId: 'price_1TlYvcBprLkwkiEdp4vI7kEP', tagline: 'Own the night', highlight: false,
-    perks: ['Everything in Elite','Dedicated VIP host at venues','Table reservation priority','Complimentary bottle service access','Triple points — always','Exclusive VIP-only events','Custom Noctu member card'],
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: '$14.99',
+    priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU',
+    tagline: 'Get in the door',
+    highlight: false,
+    perks: [
+      'Access to all Noctu venues',
+      'QR check-in at the door',
+      'Points on every visit',
+      'Member-only event alerts',
+      'Basic rewards catalog',
+    ],
+    locked: [
+      'Priority entry & skip-the-line',
+      'Bar scan rewards',
+      'Exclusive VIP lounge access',
+    ],
+    gradient: 'linear-gradient(135deg,rgba(191,0,255,0.08),rgba(139,92,246,0.05))',
+    border: 'rgba(191,0,255,0.2)',
+  },
+  {
+    id: 'elite',
+    name: 'Elite',
+    price: '$29.99',
+    priceId: 'price_1TlYvYBprLkwkiEdexU2z1Rl',
+    tagline: 'Live the night right',
+    highlight: true,
+    perks: [
+      'Everything in Starter',
+      'Priority entry — skip the line',
+      'Bar scan drink rewards',
+      'Double points on weekends',
+      'Early access to events',
+      'Exclusive member mixers',
+    ],
+    locked: [
+      'Dedicated VIP host',
+      'Table reservation priority',
+    ],
+    gradient: 'linear-gradient(135deg,rgba(191,0,255,0.18),rgba(139,92,246,0.12))',
+    border: 'rgba(191,0,255,0.55)',
+  },
+  {
+    id: 'vip',
+    name: 'VIP',
+    price: '$49.99',
+    priceId: 'price_1TlYvcBprLkwkiEdp4vI7kEP',
+    tagline: 'Own the night',
+    highlight: false,
+    perks: [
+      'Everything in Elite',
+      'Dedicated VIP host at venues',
+      'Table reservation priority',
+      'Complimentary bottle service access',
+      'Triple points — always',
+      'Exclusive VIP-only events',
+      'Custom Noctu member card',
+    ],
     locked: [],
-    gradient: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(109,40,217,0.1))', border: 'rgba(168,85,247,0.4)' },
+    gradient: 'linear-gradient(135deg,rgba(168,85,247,0.15),rgba(109,40,217,0.1))',
+    border: 'rgba(168,85,247,0.4)',
+  },
 ]
 
 export default function MemberTiersPage() {
@@ -38,15 +90,28 @@ export default function MemberTiersPage() {
   const [loadingId, setLoadingId] = useState<string|null>(null)
 
   const handleSelect = async (tier: typeof tiers[0]) => {
-    setLoadingId(tier.id)
-    try {
-      const res = await fetch('/api/create-checkout-session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ priceId: tier.priceId, userType: 'member' }) })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-      else alert('Could not start checkout. Please try again.')
-    } catch { alert('Network error. Please try again.') }
-    finally { setLoadingId(null) }
+  setLoadingId(tier.id)
+  try {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId: tier.priceId, userType: 'member' })
+    })
+
+    console.log('checkout status:', res.status)
+
+    const data = await res.json()
+    console.log('checkout data:', data)
+
+    if (data.url) window.location.href = data.url
+    else alert('Could not start checkout. Please try again.')
+  } catch (err) {
+    console.error('checkout fetch error:', err)
+    alert('Network error. Please try again.')
+  } finally {
+    setLoadingId(null)
   }
+}
 
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at top,rgba(191,0,255,0.22) 0%,rgba(139,92,246,0.14) 16%,rgba(30,0,40,0.9) 42%,#05010a 72%,#000 100%)', padding: '32px 16px 60px' }}>

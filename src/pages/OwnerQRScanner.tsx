@@ -95,9 +95,13 @@ export default function OwnerQRScanner({ clubId }: Props) {
 
       const member = memberSnap.data();
       const basePoints = mode === "door" ? (ps.doorScan ?? 50) : (ps.barScan ?? 25);
-      const multipliers: Record<string, number> = { free: 1, vip: 2, elite: 3 };
+      const multipliers: Record<string, number> = { free: 1, vip: 2, elite: 3, starter: 1.25 };
       const multiplier = multipliers[member.subscription ?? "free"] ?? 1;
-      const pointsEarned = basePoints * multiplier;
+      const pointsEarned = Math.round(basePoints * multiplier);
+
+      // Get club name for activity label
+      const clubSnap = await getDoc(doc(db, "clubs", clubId));
+      const clubName = clubSnap.exists() ? (clubSnap.data().clubName ?? "the club") : "the club";
 
       // Award points to member
       await updateDoc(doc(db, "users", uid), {
@@ -108,7 +112,7 @@ export default function OwnerQRScanner({ clubId }: Props) {
       await addDoc(collection(db, "users", uid, "activity"), {
         type: mode === "door" ? "door_scan" : "bar_scan",
         points: pointsEarned,
-        description: `${mode === "door" ? "🚪 Door" : "🍹 Bar"} scan at club · +${pointsEarned} pts`,
+        description: `${mode === "door" ? "🚪 Checked in at" : "🍹 Bar scan at"} ${clubName} · +${pointsEarned} pts`,
         createdAt: serverTimestamp(),
       });
 

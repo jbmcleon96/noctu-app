@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../providers/AuthProvider";
 import { db } from "../firebase";
+
 import {
   doc,
   getDoc,
@@ -72,6 +73,8 @@ interface PointSettings {
   };
 }
 
+
+
 interface Reward {
   id: string;
   emoji: string;
@@ -110,6 +113,12 @@ const NAV_ICONS = ["📊", "👥", "📷", "💬", "🎁", "⚙️"];
 export default function OwnerDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  if (!user) {
+    navigate("/signup");   // kick out to sign-up if not logged in
+    return null;
+  }
+
   const [activeTab, setActiveTab] = useState(0);
   const [club, setClub] = useState<ClubProfile | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
@@ -117,10 +126,9 @@ export default function OwnerDashboard() {
   const [pointSettings, setPointSettings] = useState<PointSettings | null>(null);
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [blasts, setBlasts] = useState<Blast[]>([]);
-  const [loading, setLoading] = useState(true);
+
 
   const clubId = user?.uid ?? "";
-
   useEffect(() => {
     if (!user) return;
 
@@ -136,6 +144,11 @@ export default function OwnerDashboard() {
           query(collection(db, "clubs", clubId, "events"), orderBy("date", "asc"))
         );
         setEvents(eventsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Event)));
+
+      
+
+      
+
         const psSnap = await getDoc(doc(db, "clubs", clubId, "settings", "points"));
         if (psSnap.exists()) setPointSettings(psSnap.data() as PointSettings);
 
@@ -149,28 +162,14 @@ export default function OwnerDashboard() {
       } catch (e) {
         console.error(e);
       } finally {
-        setLoading(false);
+      
       }
     }
 
     load();
   }, [user, clubId]);
 
-  if (loading) {
-    return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "#0a0010",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ color: "#BF00FF" }}>Loading...</div>
-      </div>
-    );
-  }
+  
 
   if (!club) {
     return (
@@ -204,6 +203,8 @@ export default function OwnerDashboard() {
   }
 
   
+    
+
   const topMembers = [...members].sort((a, b) => b.points - a.points).slice(0, 5);
 
   const today = new Date();
@@ -262,54 +263,64 @@ export default function OwnerDashboard() {
         </div>
 
         <button
-          onClick={async () => {
-            await logout();
-            navigate("/");
-          }}
-          style={{
-            background: "transparent",
-            border: "1px solid #3a0055",
-            borderRadius: 8,
-            padding: "6px 14px",
-            color: "#888",
-            fontSize: 12,
-            cursor: "pointer",
-          }}
-        >
-          Sign Out
-        </button>
+  onClick={async () => {
+    console.log("SIGN OUT CLICKED");
+    try {
+      await logout();
+      console.log("SIGNED OUT");
+      navigate("/signup"); // send to sign-up page
+    } catch (error) {
+      console.error("SIGN OUT ERROR:", error);
+    }
+  }}
+  style={{
+    width: "100%",
+    padding: "14px",
+    background: "transparent",
+    border: "1px solid #3a0055",
+    borderRadius: 12,
+    color: "#888",
+    fontSize: 15,
+    cursor: "pointer",
+    marginBottom: 8,
+  }}
+>
+  Sign Out
+</button>
       </div>
 
       <div style={{ padding: "0 16px" }}>
-        {activeTab === 0 && (
-          <OverviewTab
-            club={club}
-            members={members}
-            topMembers={topMembers}
-            birthdayMembers={birthdayMembers}
-            upcomingEvents={upcomingEvents}
-            totalMRR={totalMRR}
-            starterRev={starterRev}
-            vipRev={vipRev}
-            eliteRev={eliteRev}
-            totalPoints={totalPoints}
-            blasts={blasts}
-            onGoMessaging={() => setActiveTab(3)}
-          />
-        )}
+        {activeTab === 0 && <OverviewTab club={club} members={members} topMembers={topMembers} birthdayMembers={birthdayMembers} upcomingEvents={upcomingEvents} totalMRR={totalMRR} starterRev={starterRev} vipRev={vipRev} eliteRev={eliteRev} totalPoints={totalPoints} blasts={blasts} onGoMessaging={() => setActiveTab(3)} />}
+         
+{activeTab === 0 && (
+  <OverviewTab
+    club={club}
+    members={members}
+    topMembers={topMembers}
+    birthdayMembers={birthdayMembers}
+    upcomingEvents={upcomingEvents}
+    totalMRR={totalMRR}
+    starterRev={starterRev}
+    vipRev={vipRev}
+    eliteRev={eliteRev}
+    totalPoints={totalPoints}
+    blasts={blasts}
+    onGoMessaging={() => setActiveTab(3)}
+  />
+)}
 
-        {activeTab === 1 && <MembersTab members={members} showBirthdays={club.showBirthdays} />}
-        {activeTab === 2 && <ScannerTab clubId={clubId} pointSettings={pointSettings} />}
-        {activeTab === 3 && (
-          <MessagingTab
-            clubId={clubId}
-            members={members}
-            blasts={blasts}
-            onBlastSent={(b) => setBlasts((prev) => [b, ...prev])}
-          />
-        )}
-        {activeTab === 4 && (
-          <RewardsTab
+{activeTab === 1 && <MembersTab members={members} showBirthdays={club.showBirthdays} />}
+{activeTab === 2 && <ScannerTab clubId={clubId} pointSettings={pointSettings} />}
+{activeTab === 3 && (
+  <MessagingTab
+    clubId={clubId}
+    members={members}
+    blasts={blasts}
+    onBlastSent={(b) => setBlasts((prev) => [b, ...prev])}
+  />
+)}
+{activeTab === 4 && (
+  <RewardsTab
             clubId={clubId}
             rewards={rewards}
             onRewardAdded={(r) => setRewards((prev) => [...prev, r])}
@@ -393,6 +404,7 @@ function OverviewTab({
   blasts: Blast[];
   onGoMessaging: () => void;
 }) {
+
   return (
     <div style={{ paddingTop: 20 }}>
       <div
@@ -1737,19 +1749,45 @@ function SettingsTab({
   );
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [clubDraft, setClubDraft] = useState(club);
+
+useEffect(() => {
+  setClubDraft(club);
+}, [club]);
 
   async function save() {
-    setSaving(true);
-    try {
-      await setDoc(doc(db, "clubs", clubId, "settings", "points"), { ...ps }, { merge: true });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setSaving(false);
-    }
+  setSaving(true);
+  try {
+    await setDoc(doc(db, "clubs", clubId, "settings", "points"), { ...ps }, { merge: true });
+
+    await setDoc(
+      doc(db, "clubs", clubId),
+      {
+        clubName: clubDraft.clubName || "",
+        address: clubDraft.address || "",
+        city: clubDraft.city || "",
+        state: clubDraft.state || "",
+        instagram: clubDraft.instagram || "",
+        tiktok: clubDraft.tiktok || "",
+        twitter: clubDraft.twitter || "",
+        website: clubDraft.website || "",
+        coverURL: clubDraft.coverURL || "",
+        logoURL: clubDraft.logoURL || "",
+        autoMessageEnabled: !!clubDraft.autoMessageEnabled,
+        showBirthdays: !!clubDraft.showBirthdays,
+        subscription: clubDraft.subscription || "basic",
+      },
+      { merge: true }
+    );
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    setSaving(false);
   }
+}
 
   const fStyle: React.CSSProperties = {
     width: 72,
@@ -1847,17 +1885,82 @@ function SettingsTab({
       </div>
 
       <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
-        <div style={{ color: "#aaa", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 10 }}>
-          CLUB INFO
-        </div>
-        <div style={{ color: "#fff", fontSize: 14, marginBottom: 4 }}>{club.clubName}</div>
-        <div style={{ color: "#888", fontSize: 13 }}>
-          {club.address}, {club.city} {club.state}
-        </div>
-        {club.instagram && <div style={{ color: "#BF00FF", fontSize: 13, marginTop: 6 }}>📸 {club.instagram}</div>}
-        {club.tiktok && <div style={{ color: "#BF00FF", fontSize: 13, marginTop: 4 }}>🎵 {club.tiktok}</div>}
-        {club.website && <div style={{ color: "#BF00FF", fontSize: 13, marginTop: 4 }}>🌐 {club.website}</div>}
-      </div>
+  <div style={{ color: "#aaa", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 12 }}>
+    CLUB PROFILE
+  </div>
+
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Club name</div>
+    <input
+      type="text"
+      value={clubDraft.clubName || ""}
+      onChange={(e) => setClubDraft((prev) => ({ ...prev, clubName: e.target.value }))}
+      style={fStyle}
+    />
+  </div>
+
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Address</div>
+    <input
+      type="text"
+      value={clubDraft.address || ""}
+      onChange={(e) => setClubDraft((prev) => ({ ...prev, address: e.target.value }))}
+      style={fStyle}
+    />
+  </div>
+
+  <div style={{ display: "grid", gridTemplateColumns: "1fr 90px", gap: 10, marginBottom: 10 }}>
+    <div>
+      <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>City</div>
+      <input
+        type="text"
+        value={clubDraft.city || ""}
+        onChange={(e) => setClubDraft((prev) => ({ ...prev, city: e.target.value }))}
+        style={fStyle}
+      />
+    </div>
+
+    <div>
+      <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>State</div>
+      <input
+        type="text"
+        value={clubDraft.state || ""}
+        onChange={(e) => setClubDraft((prev) => ({ ...prev, state: e.target.value }))}
+        style={fStyle}
+      />
+    </div>
+  </div>
+
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Instagram</div>
+    <input
+      type="text"
+      value={clubDraft.instagram || ""}
+      onChange={(e) => setClubDraft((prev) => ({ ...prev, instagram: e.target.value }))}
+      style={fStyle}
+    />
+  </div>
+
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>TikTok</div>
+    <input
+      type="text"
+      value={clubDraft.tiktok || ""}
+      onChange={(e) => setClubDraft((prev) => ({ ...prev, tiktok: e.target.value }))}
+      style={fStyle}
+    />
+  </div>
+
+  <div style={{ marginBottom: 10 }}>
+    <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Website</div>
+    <input
+      type="text"
+      value={clubDraft.website || ""}
+      onChange={(e) => setClubDraft((prev) => ({ ...prev, website: e.target.value }))}
+      style={fStyle}
+    />
+  </div>
+</div>
 
       <button
         onClick={save}
