@@ -21,12 +21,12 @@ function NoctuHeader() {
 const tiers = [
   {
     id: 'starter',
-    name: 'Starter',
-    price: '$14.99',
-    priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU'
-    tagline: 'Get in the door',
-    highlight: false,
-    perks: [
+name: 'Starter',
+price: '$14.99',
+priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU',
+tagline: 'Get in the door',
+highlight: false,
+perks: [
       'Access to all Noctu venues',
       'QR check-in at the door',
       'Points on every visit',
