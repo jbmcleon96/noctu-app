@@ -23,7 +23,7 @@ const tiers = [
     id: 'starter',
     name: 'Starter',
     price: '$14.99',
-    priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU',
+    priceId: 'price_1TlYvfBprLkwkiEd4eJzkZUU'
     tagline: 'Get in the door',
     highlight: false,
     perks: [
