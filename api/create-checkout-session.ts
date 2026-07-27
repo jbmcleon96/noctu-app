@@ -15,6 +15,10 @@ export default async function handler(req: any, res: any) {
     if (!priceId) {
       return res.status(400).json({ error: 'Missing priceId' })
     }
+    console.log(
+  'Stripe key prefix in production:',
+  process.env.STRIPE_SECRET_KEY?.slice(0, 10)
+)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
