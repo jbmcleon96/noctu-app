@@ -35,7 +35,10 @@ export default async function handler(req: any, res: any) {
       cancel_url: 'https://noctu.cc/member-tiers',
     })
 
-    return res.status(200).json({ url: session.url })
+    return res.status(200).json({
+  url: session.url,
+  keyPrefix: process.env.STRIPE_SECRET_KEY?.slice(0, 10),
+})
   } catch (error: any) {
     console.error('Stripe checkout error:', error)
     return res.status(500).json({ error: error.message || 'Server error' })
