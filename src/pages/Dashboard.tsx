@@ -158,7 +158,12 @@ export default function Dashboard() {
   const [copied, setCopied] = useState(false);
 
   const uid = user?.uid ?? "";
-
+  
+const PRICE_IDS: Record<string, string> = {
+  starter: "price_1TlYvfBprLkwkiEd4eJzkZUU",
+  elite: "price_1TlYvYBprLkwkiEdexU2z1Rl",
+  vip: "price_1TlYvcBprLkwkiEdp4vI7kEP",
+};
   async function startCheckout(plan: "starter" | "vip" | "elite") {
   if (!uid || !user?.email) {
     alert("Please sign in again.");
@@ -174,10 +179,11 @@ export default function Dashboard() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        plan,
-        uid,
-        email: user.email,
-      }),
+  priceId: PRICE_IDS[plan],
+  userType: plan,
+  uid,
+  email: user.email,
+    }),
     });
 
     const data = await response.json();
