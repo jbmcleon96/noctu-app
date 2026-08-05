@@ -1,43 +1,26 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
+  const { priceId, userType } = req.body;
   try {
-    const Stripe = (await import("stripe")).default;
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
-    console.log('checkout body:', req.body)
-    const { priceId, userType, couponCode } = req.body;
-
-    if (!priceId) {
-      return res.status(400).json({ error: "Missing priceId" });
-    }
-
-    const baseUrl = process.env.FRONTEND_BASE_URL || "https://noctu.cc";
-
-    const sessionParams: any = {
-      mode: "subscription",
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: userType === "owner"
-        ? `${baseUrl}/owner-dashboard?success=true`
-        : `${baseUrl}/dashboard?success=true`,
-      cancel_url: userType === "owner"
-        ? `${baseUrl}/owner-signup`
-        : `${baseUrl}/member-tiers`,
-    };
+      success_url: `https://noctu.cc/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://noctu.cc/pricing`,
+      client_reference_id: userId,
+      metadata: { tier },
+    });
 
-    if (couponCode) {
-      sessionParams.discounts = [{ coupon: couponCode }];
-    }
-
-    const session = await stripe.checkout.sessions.create(sessionParams);
-    return res.status(200).json({ url: session.url });
-
+    res.status(200).json({ url: session.url });
   } catch (err: any) {
-    console.error("Checkout error:", err?.message || err);
-    return res.status(500).json({ error: err?.message || "Server error" });
+    console.error('Stripe session error:', err);
+    res.status(500).json({ error: err.message });
   }
 }

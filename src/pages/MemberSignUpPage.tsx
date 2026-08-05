@@ -45,7 +45,7 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
 
   useEffect(() => {
   if (user) {
-    
+    navigate("/dashboard", { replace: true })
   }
 }, [user, navigate])
 
@@ -79,7 +79,7 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
       })
 
       console.log("SIGN UP SUCCESS")
-      navigate("/dashboard")
+      
     } catch (err: any) {
       console.error("SIGNUP ERROR:", err)
       setError(err.message || 'Could not create account.')
