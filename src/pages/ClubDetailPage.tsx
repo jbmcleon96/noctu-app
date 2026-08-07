@@ -22,9 +22,10 @@ export default function ClubDetailPage() {
 
   useEffect(() => {
     if (!clubId) return;
+    const safeClubId: string = clubId;
     async function loadClub() {
       try {
-        const snap = await getDoc(doc(db, "clubs", clubId));
+        const snap = await getDoc(doc(db, "clubs", safeClubId));
         if (snap.exists()) {
           setClub(snap.data() as ClubDetail);
         }
