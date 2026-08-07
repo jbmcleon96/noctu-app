@@ -220,6 +220,8 @@ export default function OwnerDashboard() {
   const vipRev = members.filter((m) => m.subscription === "vip").length * 35;
   const eliteRev = members.filter((m) => m.subscription === "elite").length * 75;
   const totalMRR = starterRev + vipRev + eliteRev;
+  const noctuFee = members.length * 3 + totalMRR * 0.05;
+  const clubShare = totalMRR - noctuFee;
   const totalPoints = members.reduce((sum, m) => sum + (m.points ?? 0), 0);
 
   return (
@@ -290,24 +292,8 @@ export default function OwnerDashboard() {
       </div>
 
       <div style={{ padding: "0 16px" }}>
-        {activeTab === 0 && <OverviewTab club={club} members={members} topMembers={topMembers} birthdayMembers={birthdayMembers} upcomingEvents={upcomingEvents} totalMRR={totalMRR} starterRev={starterRev} vipRev={vipRev} eliteRev={eliteRev} totalPoints={totalPoints} blasts={blasts} onGoMessaging={() => setActiveTab(3)} />}
+        {activeTab === 0 && <OverviewTab club={club} members={members} topMembers={topMembers} birthdayMembers={birthdayMembers} upcomingEvents={upcomingEvents} totalMRR={totalMRR} clubShare={clubShare} noctuFee={noctuFee} starterRev={starterRev} vipRev={vipRev} eliteRev={eliteRev} totalPoints={totalPoints} blasts={blasts} onGoMessaging={() => setActiveTab(3)} />}
          
-{activeTab === 0 && (
-  <OverviewTab
-    club={club}
-    members={members}
-    topMembers={topMembers}
-    birthdayMembers={birthdayMembers}
-    upcomingEvents={upcomingEvents}
-    totalMRR={totalMRR}
-    starterRev={starterRev}
-    vipRev={vipRev}
-    eliteRev={eliteRev}
-    totalPoints={totalPoints}
-    blasts={blasts}
-    onGoMessaging={() => setActiveTab(3)}
-  />
-)}
 
 {activeTab === 1 && <MembersTab members={members} showBirthdays={club.showBirthdays} />}
 {activeTab === 2 && <ScannerTab clubId={clubId} pointSettings={pointSettings} />}
@@ -384,6 +370,8 @@ function OverviewTab({
   birthdayMembers,
   upcomingEvents,
   totalMRR,
+  clubShare,
+  noctuFee,
   starterRev,
   vipRev,
   eliteRev,
@@ -397,6 +385,8 @@ function OverviewTab({
   birthdayMembers: Member[];
   upcomingEvents: Event[];
   totalMRR: number;
+  clubShare: number;
+  noctuFee: number;
   starterRev: number;
   vipRev: number;
   eliteRev: number;
@@ -452,6 +442,23 @@ function OverviewTab({
           sub="from subscriptions"
           subColor="#00ff88"
           icon="💰"
+        />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+        <StatCard
+          label="YOUR SHARE"
+          value={`$${clubShare.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+          sub="after Noctu platform fee"
+          subColor="#00ff88"
+          icon="🏆"
+        />
+        <StatCard
+          label="NOCTU FEE"
+          value={`$${noctuFee.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
+          sub="$3/member + 5% of revenue"
+          subColor="#BF00FF"
+          icon="🔗"
         />
       </div>
 
