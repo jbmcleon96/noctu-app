@@ -3,6 +3,8 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./index.css";
 import Dashboard from "./pages/Dashboard";
+import ClubsPage from "./pages/ClubsPage";
+import ClubDetailPage from "./pages/ClubDetailPage";
 import LandingPage from "./pages/LandingPage";
 import MemberSignUpPage from "./pages/MemberSignUpPage";
 import MemberTiersPage from "./pages/MemberTiersPage";
@@ -36,6 +38,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/owner-signin" element={<OwnerSignInPage />} />
           <Route path="/owner-signup" element={<OwnerSignUpPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/clubs" element={<ClubsPage />} />
+          <Route path="/clubs/:clubId" element={<ClubDetailPage />} />
           <Route path="/owner-dashboard" element={<OwnerDashboard />} />
           <Route path="/owner-onboarding" element={<OwnerOnboarding />} />
           <Route path="/owner-qr-scanner" element={<OwnerQRScanner clubId="demo-club" />} />

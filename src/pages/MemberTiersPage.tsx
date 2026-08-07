@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import NoctuHeader from '../components/NoctuHeader';
+import '../styles/noctu-theme.css';
 
 interface Tier {
   name: string;
@@ -63,87 +65,47 @@ export default function MemberTiersPage() {
   }
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.heading}>Choose Your Membership</h1>
-      <div style={styles.tierGrid}>
-        {tiers.map((tier) => (
-          <div key={tier.name} style={styles.card}>
-            <h2 style={styles.tierName}>{tier.name}</h2>
-            <p style={styles.price}>{tier.price}</p>
-            <ul style={styles.featureList}>
-              {tier.features.map((feature) => (
-                <li key={feature} style={styles.feature}>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-            <button
-              style={styles.button}
-              disabled={loadingTier === tier.name}
-              onClick={() => handleSubscribe(tier.priceId, tier.name)}
-            >
-              {loadingTier === tier.name ? 'Redirecting…' : `Subscribe to ${tier.name}`}
-            </button>
-          </div>
-        ))}
+    <div className="noctu-page">
+      <div className="noctu-shell">
+        <NoctuHeader
+          eyebrow="Choose your level"
+          subtitle="Start free. Upgrade when you're ready."
+          size="md"
+        />
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '16px',
+          }}
+        >
+          {tiers.map((tier) => (
+            <div key={tier.name} className="noctu-card">
+              <h2 className="noctu-heading" style={{ fontSize: '22px' }}>
+                {tier.name}
+              </h2>
+              <p className="noctu-badge" style={{ marginBottom: '14px' }}>
+                {tier.price}
+              </p>
+              <ul style={{ listStyle: 'none', padding: 0, marginBottom: '18px' }}>
+                {tier.features.map((feature) => (
+                  <li key={feature} className="noctu-subtext" style={{ marginBottom: '6px' }}>
+                    • {feature}
+                  </li>
+                ))}
+              </ul>
+              <button
+                className="noctu-primary-btn"
+                disabled={loadingTier === tier.name}
+                onClick={() => handleSubscribe(tier.priceId, tier.name)}
+              >
+                {loadingTier === tier.name ? 'Redirecting…' : `Subscribe to ${tier.name}`}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    padding: '40px 20px',
-    maxWidth: '1100px',
-    margin: '0 auto',
-    fontFamily: 'system-ui, sans-serif',
-  },
-  heading: {
-    textAlign: 'center',
-    marginBottom: '32px',
-    fontSize: '2rem',
-  },
-  tierGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '24px',
-  },
-  card: {
-    border: '1px solid #333',
-    borderRadius: '12px',
-    padding: '24px',
-    backgroundColor: '#111',
-    color: '#fff',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  tierName: {
-    fontSize: '1.5rem',
-    marginBottom: '8px',
-  },
-  price: {
-    fontSize: '1.25rem',
-    marginBottom: '16px',
-    opacity: 0.8,
-  },
-  featureList: {
-    listStyle: 'none',
-    padding: 0,
-    marginBottom: '24px',
-    flexGrow: 1,
-  },
-  feature: {
-    padding: '6px 0',
-    borderBottom: '1px solid #222',
-  },
-  button: {
-    padding: '12px 20px',
-    borderRadius: '8px',
-    border: 'none',
-    backgroundColor: '#6c5ce7',
-    color: '#fff',
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontSize: '1rem',
-  },
-};

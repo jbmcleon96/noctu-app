@@ -1,0 +1,196 @@
+.noctu-page {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, rgba(191, 0, 255, 0.20), transparent 28%),
+    linear-gradient(180deg, #120018 0%, #08000f 100%);
+  color: #f6eeff;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  padding: 24px;
+}
+
+.noctu-shell {
+  width: min(720px, 100%);
+  margin: 0 auto;
+}
+
+.noctu-card {
+  border: 1px solid rgba(191, 0, 255, 0.22);
+  border-radius: 24px;
+  background: rgba(17, 7, 27, 0.72);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(16px);
+  padding: clamp(18px, 3vw, 28px);
+  margin-bottom: 18px;
+}
+
+.noctu-card-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: #dfa4ff;
+  margin-bottom: 14px;
+  font-weight: 700;
+}
+
+.noctu-eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: #dfa4ff;
+}
+
+.noctu-heading {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 6px 0 4px;
+  color: #f6eeff;
+}
+
+.noctu-subtext {
+  color: rgba(246, 238, 255, 0.68);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.noctu-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 0, 255, 0.22);
+  background: rgba(191, 0, 255, 0.09);
+  font-size: 12px;
+  color: #f2d6ff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.noctu-primary-btn,
+.noctu-secondary-btn {
+  width: 100%;
+  min-height: 54px;
+  border-radius: 999px;
+  border: none;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.noctu-primary-btn {
+  background: linear-gradient(135deg, #e15bff 0%, #bf00ff 55%, #8a00b8 100%);
+  color: white;
+  box-shadow: 0 16px 40px rgba(191, 0, 255, 0.35);
+}
+
+.noctu-secondary-btn {
+  background: transparent;
+  color: #f6eeff;
+  border: 1px solid rgba(191, 0, 255, 0.22);
+}
+
+.noctu-primary-btn:hover,
+.noctu-secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.noctu-primary-btn:disabled,
+.noctu-secondary-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.noctu-divider {
+  height: 1px;
+  background: rgba(191, 0, 255, 0.22);
+  margin: 14px 0;
+}
+
+.noctu-tabbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(10, 3, 18, 0.92);
+  border-top: 1px solid rgba(191, 0, 255, 0.22);
+  backdrop-filter: blur(16px);
+  z-index: 40;
+}
+
+.noctu-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: rgba(246, 238, 255, 0.5);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 10px;
+  position: relative;
+}
+
+.noctu-tab.active {
+  color: #f2d6ff;
+}
+
+.noctu-tab .tab-dot {
+  position: absolute;
+  top: -2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff4fd8;
+  box-shadow: 0 0 8px rgba(255, 79, 216, 0.8);
+}
+
+.noctu-club-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+}
+
+.noctu-club-card {
+  border: 1px solid rgba(191, 0, 255, 0.22);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  text-align: left;
+}
+
+.noctu-club-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(191, 0, 255, 0.5);
+}
+
+.noctu-club-card img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  display: block;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.noctu-club-card .club-info {
+  padding: 10px 12px 14px;
+}
+
+.noctu-club-card .club-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f6eeff;
+  margin-bottom: 2px;
+}
+
+.noctu-club-card .club-meta {
+  font-size: 12px;
+  color: rgba(246, 238, 255, 0.55);
+}

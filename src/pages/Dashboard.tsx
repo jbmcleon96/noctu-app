@@ -104,6 +104,7 @@ const EVENT_GRADIENTS = [
 
 const NAV = [
   { label: "Home", icon: "🏠" },
+  { label: "Clubs", icon: "🏛️" },
   { label: "Events", icon: "🎉" },
   { label: "Profile", icon: "👤" },
 ];
@@ -462,10 +463,7 @@ useEffect(() => {
       )}
 
       <div style={{ padding: "16px 20px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #ff6b9d, #BF00FF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🔑</div>
-          <span style={{ color: "#ff6b9d", fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>NOCTÜ</span>
-        </div>
+        <img src="/assets/noctu-logo-transparent.png" alt="NOCTU" style={{ height: 28, width: "auto" }} />
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#1a0030", border: "1px solid #3a0055", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, cursor: "pointer" }}>🔔</div>
       </div>
 
@@ -989,7 +987,13 @@ useEffect(() => {
         {NAV.map((tab, i) => (
           <button
             key={tab.label}
-            onClick={() => setActiveTab(i)}
+            onClick={() => {
+              if (tab.label === "Clubs") {
+                navigate("/clubs");
+                return;
+              }
+              setActiveTab(i);
+            }}
             style={{
               background: "transparent",
               border: "none",
