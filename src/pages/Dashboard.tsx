@@ -104,9 +104,9 @@ const EVENT_GRADIENTS = [
 
 const NAV = [
   { label: "Home", icon: "🏠" },
-  { label: "Clubs", icon: "🏛️" },
   { label: "Events", icon: "🎉" },
   { label: "Profile", icon: "👤" },
+  { label: "Clubs", icon: "🏛️" },
 ];
 
 function toMillis(value: FirestoreDateLike): number {
