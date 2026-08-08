@@ -7,9 +7,9 @@ interface NoctuHeaderProps {
 }
 
 const sizeMap: Record<string, string> = {
-  sm: 'clamp(120px, 30vw, 180px)',
-  md: 'clamp(160px, 40vw, 260px)',
-  lg: 'clamp(220px, 55vw, 380px)',
+  sm: 'clamp(140px, 35vw, 200px)',
+  md: 'clamp(190px, 46vw, 300px)',
+  lg: 'clamp(260px, 60vw, 420px)',
 };
 
 export default function NoctuHeader({

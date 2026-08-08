@@ -45,7 +45,7 @@ export default function ClubsPage() {
           <img
             src="/assets/noctu-logo-transparent.png"
             alt="NOCTU"
-            style={{ height: 32, marginBottom: 10 }}
+            style={{ height: 44, marginBottom: 10 }}
           />
           <div className="noctu-eyebrow">On Noctu</div>
           <p className="noctu-subtext">Clubs live on the platform right now</p>
