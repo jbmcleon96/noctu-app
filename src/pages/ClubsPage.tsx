@@ -41,6 +41,14 @@ export default function ClubsPage() {
   return (
     <div className="noctu-page" style={{ paddingBottom: 90 }}>
       <div className="noctu-shell">
+        <button
+          className="noctu-secondary-btn"
+          style={{ width: "auto", padding: "8px 16px", marginBottom: 16 }}
+          onClick={() => navigate("/dashboard")}
+        >
+          ← Back
+        </button>
+
         <div style={{ textAlign: "center", marginBottom: 20 }}>
           <img
             src="/assets/noctu-logo-transparent.png"
