@@ -145,7 +145,7 @@ export default function Dashboard() {
 
   const [activeTab, setActiveTab] = useState(0);
   const [profile, setProfile] = useState<Profile | null>(null);
- const [activity] = useState<Activity[]>([]);
+  const [activity, setActivity] = useState<Activity[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -248,6 +248,12 @@ useEffect(() => {
         }
 
     
+        const activitySnap = await getDocs(
+          query(collection(db, "users", uid, "activity"), orderBy("createdAt", "desc"), limit(10))
+        );
+        setActivity(
+          activitySnap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Activity, "id">) }))
+        );
 
         const clubSnap = await getDocs(collection(db, "clubs"));
         const userClubs: Club[] = [];
@@ -410,6 +416,11 @@ useEffect(() => {
   const currentSubscription = profile?.subscription ?? "free";
   const sub = SUBSCRIPTIONS[currentSubscription] ?? SUBSCRIPTIONS.free;
   const currentTier = profile?.tier ?? "Access";
+  const TIER_ORDER = ["Access", "Silver", "Gold", "Obsidian"];
+  const nextTierName = TIER_ORDER[TIER_ORDER.indexOf(currentTier) + 1];
+  const pointsToNextTier = nextTierName
+    ? Math.max(TIER_THRESHOLDS[nextTierName] - (profile?.points ?? 0), 0)
+    : 0;
   const currentPoints = profile?.points ?? 0;
   const tierKeys = Object.keys(TIER_THRESHOLDS) as (keyof typeof TIER_THRESHOLDS)[];
   const tierIndex = tierKeys.indexOf(currentTier as keyof typeof TIER_THRESHOLDS);
@@ -666,6 +677,27 @@ useEffect(() => {
                 </button>
               </div>
             </div>
+
+            {nextTierName && (
+              <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                <div style={{ color: "#aaa", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 10 }}>NEXT REWARD</div>
+                <div style={{ color: "#fff", fontSize: 14, marginBottom: 8 }}>
+                  {pointsToNextTier.toLocaleString()} points to <span style={{ color: "#BF00FF", fontWeight: 700 }}>{nextTierName}</span>
+                </div>
+                <div style={{ background: "#2a0040", borderRadius: 8, height: 8, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      background: "linear-gradient(90deg, #BF00FF, #ff6b9d)",
+                      height: "100%",
+                      width: `${Math.min(
+                        100,
+                        (currentPoints / (TIER_THRESHOLDS[nextTierName] || 1)) * 100
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
 
             {activity.length > 0 && (
               <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
