@@ -38,8 +38,10 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [birthday, setBirthday] = useState('')
   const [password, setPassword] = useState('')
+  const [referralCode, setReferralCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -48,6 +50,12 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
     navigate("/dashboard", { replace: true })
   }
 }, [user, navigate])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const ref = params.get('ref')
+    if (ref) setReferralCode(ref.toUpperCase())
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,13 +81,18 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
       setLoading(true)
       console.log("ABOUT TO SIGN UP", email)
 
-      await signUp(email, password, "member", {
+      const uid = await signUp(email, password, "member", {
         displayName: fullName,
         birthday,
+        phone,
       })
 
       console.log("SIGN UP SUCCESS")
-      
+
+      // Stash phone + referral code so Dashboard can attach them when it creates the profile doc.
+      sessionStorage.setItem("noctu_signup_phone", phone)
+      if (referralCode) sessionStorage.setItem("noctu_referral_code", referralCode)
+      void uid
     } catch (err: any) {
       console.error("SIGNUP ERROR:", err)
       setError(err.message || 'Could not create account.')
@@ -121,6 +134,11 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
             </div>
 
             <div>
+              <label style={lbl}>Phone Number</label>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="(555) 555-5555" style={inp} />
+            </div>
+
+            <div>
               <label style={lbl}>Birthday</label>
               <input type="date" value={birthday} onChange={e => setBirthday(e.target.value)} required style={{ ...inp, colorScheme: 'dark' }} />
             </div>
@@ -128,6 +146,11 @@ const lbl: React.CSSProperties = { color: 'rgba(233,210,255,0.78)', fontSize: '1
             <div>
               <label style={lbl}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="Min. 6 characters" style={inp} />
+            </div>
+
+            <div>
+              <label style={lbl}>Referral Code <span style={{ opacity: 0.55, textTransform: 'none' }}>(optional — get 200 pts)</span></label>
+              <input type="text" value={referralCode} onChange={e => setReferralCode(e.target.value.toUpperCase())} placeholder="e.g. AB12CD" style={inp} />
             </div>
 
             <button

@@ -13,12 +13,13 @@ import { auth } from "../firebase";
 interface MemberSignUpOptions {
   displayName?: string;
   birthday?: string;
+  phone?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email: string, password: string, role?: string, options?: MemberSignUpOptions) => Promise<void>;
+  signUp: (email: string, password: string, role?: string, options?: MemberSignUpOptions) => Promise<string>;
   signIn: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -58,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await updateProfile(cred.user, { displayName: options.displayName });
       console.log("PROFILE UPDATED");
     }
+
+    return uid;
   }
 
   async function signIn(email: string, password: string) {

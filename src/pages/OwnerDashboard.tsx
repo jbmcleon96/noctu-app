@@ -44,6 +44,7 @@ interface Member {
   tier: string;
   subscription: string;
   birthday: string;
+  phone?: string;
   joinedAt: number;
 }
 
@@ -292,11 +293,10 @@ export default function OwnerDashboard() {
       </div>
 
       <div style={{ padding: "0 16px" }}>
-        {activeTab === 0 && <OverviewTab club={club} members={members} topMembers={topMembers} birthdayMembers={birthdayMembers} upcomingEvents={upcomingEvents} totalMRR={totalMRR} clubShare={clubShare} noctuFee={noctuFee} starterRev={starterRev} vipRev={vipRev} eliteRev={eliteRev} totalPoints={totalPoints} blasts={blasts} onGoMessaging={() => setActiveTab(3)} />}
-         
+        {activeTab === 0 && <OverviewTab clubId={clubId} club={club} members={members} topMembers={topMembers} birthdayMembers={birthdayMembers} upcomingEvents={upcomingEvents} totalMRR={totalMRR} clubShare={clubShare} noctuFee={noctuFee} starterRev={starterRev} vipRev={vipRev} eliteRev={eliteRev} totalPoints={totalPoints} blasts={blasts} onGoMessaging={() => setActiveTab(3)} />}
 
-{activeTab === 1 && <MembersTab members={members} showBirthdays={club.showBirthdays} />}
-{activeTab === 2 && <ScannerTab clubId={clubId} pointSettings={pointSettings} />}
+{activeTab === 1 && <MembersTab clubId={clubId} members={members} showBirthdays={club.showBirthdays} />}
+{activeTab === 2 && <ScannerTab clubId={clubId} clubName={club.clubName} pointSettings={pointSettings} />}
 {activeTab === 3 && (
   <MessagingTab
     clubId={clubId}
@@ -364,6 +364,7 @@ export default function OwnerDashboard() {
 }
 
 function OverviewTab({
+  clubId,
   club,
   members,
   topMembers,
@@ -379,6 +380,7 @@ function OverviewTab({
   blasts,
   onGoMessaging,
 }: {
+  clubId: string;
   club: ClubProfile;
   members: Member[];
   topMembers: Member[];
@@ -394,6 +396,35 @@ function OverviewTab({
   blasts: Blast[];
   onGoMessaging: () => void;
 }) {
+  const [sendingGiftId, setSendingGiftId] = useState<string | null>(null);
+  const [giftSentIds, setGiftSentIds] = useState<Set<string>>(new Set());
+  const [giftError, setGiftError] = useState("");
+
+  async function sendBirthdayGift(m: Member) {
+    setGiftError("");
+    setSendingGiftId(m.id);
+    try {
+      const resp = await fetch("/api/send-sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clubId,
+          memberId: m.id,
+          message: `🎂 Happy Birthday from ${club.clubName}! We just dropped 200 bonus points on your account — come celebrate with us tonight.`,
+          activityType: "birthday_bonus",
+          activityDescription: `🎂 Birthday gift from ${club.clubName} · +200 pts`,
+          bonusPoints: 200,
+        }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result?.error || "Failed to send gift.");
+      setGiftSentIds((prev) => new Set(prev).add(m.id));
+    } catch (e: any) {
+      setGiftError(e.message || "Could not send birthday gift.");
+    } finally {
+      setSendingGiftId(null);
+    }
+  }
 
   return (
     <div style={{ paddingTop: 20 }}>
@@ -589,7 +620,7 @@ function OverviewTab({
               <div>
                 <div style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>Birthdays Today</div>
                 <div style={{ color: "#888", fontSize: 12 }}>
-                  App auto-sends a birthday message + 200 bonus pts
+                  Tap Send Gift to text them + drop 200 bonus pts
                 </div>
               </div>
             </div>
@@ -660,26 +691,32 @@ function OverviewTab({
                     </span>
                   </div>
                   <div style={{ color: "#888", fontSize: 11 }}>
-                    {m.subscription} · {(m.points ?? 0).toLocaleString()} pts · +200 birthday pts auto-sent
+                    {m.subscription} · {(m.points ?? 0).toLocaleString()} pts
+                    {giftSentIds.has(m.id) ? " · gift sent 🎂" : " · gift not sent yet"}
                   </div>
                 </div>
               </div>
 
               <button
+                disabled={sendingGiftId === m.id}
+                onClick={() => sendBirthdayGift(m)}
                 style={{
-                  background: "transparent",
+                  background: sendingGiftId === m.id ? "#222" : "transparent",
                   border: "1px solid #3a0055",
                   borderRadius: 8,
                   padding: "6px 10px",
-                  color: "#aaa",
+                  color: giftSentIds.has(m.id) ? "#00ff88" : "#aaa",
                   fontSize: 11,
-                  cursor: "pointer",
+                  cursor: sendingGiftId === m.id ? "default" : "pointer",
                 }}
               >
-                Send Gift
+                {sendingGiftId === m.id ? "Sending..." : giftSentIds.has(m.id) ? "Sent ✓" : "Send Gift"}
               </button>
             </div>
           ))}
+          {giftError && (
+            <div style={{ color: "#ff6688", fontSize: 11, marginTop: 6 }}>{giftError}</div>
+          )}
         </div>
       )}
 
@@ -689,7 +726,7 @@ function OverviewTab({
           {[
             { label: "Messages sent (this month)", value: blasts.length.toString(), color: "#fff" },
             { label: "Avg open rate", value: "83%", color: "#00ff88" },
-            { label: "Birthday texts sent", value: `${birthdayMembers.length} today`, color: "#fff" },
+            { label: "Birthdays today", value: `${birthdayMembers.length}`, color: "#fff" },
             { label: "Total members reached", value: members.length.toString(), color: "#fff" },
           ].map((s) => (
             <div
@@ -786,9 +823,43 @@ function OverviewTab({
   );
 }
 
-function MembersTab({ members, showBirthdays }: { members: Member[]; showBirthdays: boolean }) {
+function MembersTab({ clubId, members, showBirthdays }: { clubId: string; members: Member[]; showBirthdays: boolean }) {
   const [search, setSearch] = useState("");
   const [filterTier, setFilterTier] = useState("All");
+  const [tableLabels, setTableLabels] = useState<Record<string, string>>({});
+  const [sendingTableId, setSendingTableId] = useState<string | null>(null);
+  const [tableSentIds, setTableSentIds] = useState<Set<string>>(new Set());
+  const [tableError, setTableError] = useState("");
+
+  async function sendTableReady(m: Member) {
+    const label = (tableLabels[m.id] || "").trim();
+    if (!label) {
+      setTableError("Enter a table number or name first.");
+      return;
+    }
+    setTableError("");
+    setSendingTableId(m.id);
+    try {
+      const resp = await fetch("/api/send-sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clubId,
+          memberId: m.id,
+          message: `Your table (${label}) is ready! Head on in 🍾`,
+          activityType: "table_ready",
+          activityDescription: `🪧 Table ready · ${label}`,
+        }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result?.error || "Failed to send text.");
+      setTableSentIds((prev) => new Set(prev).add(m.id));
+    } catch (e: any) {
+      setTableError(e.message || "Could not send table-ready text.");
+    } finally {
+      setSendingTableId(null);
+    }
+  }
 
   const filtered = members.filter((m) => {
     const ms =
@@ -916,11 +987,72 @@ function MembersTab({ members, showBirthdays }: { members: Member[]; showBirthda
           </div>
         );
       })}
+
+      <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16, marginTop: 16 }}>
+        <div style={{ color: "#fff", fontSize: 14, fontWeight: 700, marginBottom: 4 }}>Table Ready</div>
+        <div style={{ color: "#888", fontSize: 12, marginBottom: 14 }}>
+          Text a member when their table is ready.
+        </div>
+
+        {filtered.length === 0 && (
+          <div style={{ textAlign: "center", color: "#555", padding: "12px 0" }}>No members found</div>
+        )}
+
+        {filtered.map((m) => (
+          <div
+            key={`table-${m.id}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 10,
+            }}
+          >
+            <div style={{ color: "#ccc", fontSize: 13, flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {m.displayName || m.username}
+            </div>
+            <input
+              value={tableLabels[m.id] || ""}
+              onChange={(e) => setTableLabels((prev) => ({ ...prev, [m.id]: e.target.value }))}
+              placeholder="Table #"
+              style={{
+                width: 90,
+                background: "#1a002a",
+                border: "1px solid #3a0055",
+                borderRadius: 8,
+                padding: "6px 10px",
+                color: "#fff",
+                fontSize: 12,
+                outline: "none",
+                flexShrink: 0,
+              }}
+            />
+            <button
+              disabled={sendingTableId === m.id}
+              onClick={() => sendTableReady(m)}
+              style={{
+                background: "#BF00FF22",
+                border: "1px solid #BF00FF",
+                borderRadius: 8,
+                padding: "6px 12px",
+                color: "#BF00FF",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: sendingTableId === m.id ? "default" : "pointer",
+                flexShrink: 0,
+              }}
+            >
+              {sendingTableId === m.id ? "Sending..." : tableSentIds.has(m.id) ? "Sent ✓" : "Text"}
+            </button>
+          </div>
+        ))}
+        {tableError && <div style={{ color: "#ff6688", fontSize: 11, marginTop: 6 }}>{tableError}</div>}
+      </div>
     </div>
   );
 }
 
-function ScannerTab({ clubId, pointSettings }: { clubId: string; pointSettings: PointSettings | null }) {
+function ScannerTab({ clubId, clubName, pointSettings }: { clubId: string; clubName: string; pointSettings: PointSettings | null }) {
   const [mode, setMode] = useState<"door" | "bar">("door");
   const [scanning, setScanning] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -1043,8 +1175,9 @@ function ScannerTab({ clubId, pointSettings }: { clubId: string; pointSettings: 
       await addDoc(collection(db, "users", memberId, "activity"), {
         type: mode === "door" ? "door_scan" : "bar_scan",
         points: pts,
-        description: `${mode === "door" ? "🚪 Door" : "🍹 Bar"} scan · +${pts} pts`,
+        description: `${mode === "door" ? "🚪 Door" : "🍹 Bar"} scan at ${clubName || "the club"} · +${pts} pts`,
         clubId,
+        clubName: clubName || "",
         createdAt: serverTimestamp(),
       });
 

@@ -35,6 +35,7 @@ interface Profile {
   tier?: string;
   subscription?: string;
   referralCode?: string;
+  phone?: string;
   birthday?: string;
   createdAt?: FirestoreDateLike;
 }
@@ -136,6 +137,34 @@ function formatTime(value: FirestoreDateLike, options?: Intl.DateTimeFormatOptio
   return new Date(ms).toLocaleTimeString("en-US", options);
 }
 
+const ACTIVITY_META: Record<string, { icon: string; label: string }> = {
+  door_scan: { icon: "🚪", label: "Door check-in" },
+  bar_scan: { icon: "🍹", label: "Bar scan" },
+  referral_sent: { icon: "🎉", label: "Referral bonus" },
+  referral_welcome: { icon: "🌙", label: "Welcome bonus" },
+  profile_pic: { icon: "📸", label: "Profile pic" },
+  gallery_photo: { icon: "🖼️", label: "Gallery photo" },
+  table_ready: { icon: "📱", label: "Table notification" },
+  birthday_bonus: { icon: "🎂", label: "Birthday bonus" },
+};
+
+function activityMeta(type?: string) {
+  return ACTIVITY_META[type ?? ""] ?? { icon: "✨", label: "Activity" };
+}
+
+function activityWhen(value: FirestoreDateLike) {
+  const ms = toMillis(value);
+  if (!ms) return "";
+  const date = new Date(ms);
+  const now = new Date();
+  const sameDay = date.toDateString() === now.toDateString();
+  const datePart = sameDay
+    ? "Today"
+    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const timePart = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return `${datePart} · ${timePart}`;
+}
+
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -157,6 +186,7 @@ export default function Dashboard() {
   const [birthdayInput, setBirthdayInput] = useState("");
   const [savingUsername, setSavingUsername] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
   const uid = user?.uid ?? "";
   
@@ -225,6 +255,9 @@ useEffect(() => {
           setBirthdayInput(data.birthday ?? "");
           if (!data.username) setShowUsernameModal(true);
         } else {
+          const stashedPhone = sessionStorage.getItem("noctu_signup_phone") ?? "";
+          const stashedReferralCode = sessionStorage.getItem("noctu_referral_code") ?? "";
+
           const starterProfile: Profile = {
             displayName: user?.displayName ?? "",
             username: "",
@@ -234,6 +267,7 @@ useEffect(() => {
             tier: "Access",
             subscription: "free",
             referralCode: uid.slice(0, 6).toUpperCase(),
+            phone: stashedPhone,
             birthday: "",
             createdAt: Date.now(),
           };
@@ -245,6 +279,26 @@ useEffect(() => {
 
           setProfile(starterProfile);
           setShowUsernameModal(true);
+
+          // If they signed up with a referral code, award both sides their points server-side.
+          if (stashedReferralCode) {
+            try {
+              const resp = await fetch("/api/process-referral", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ referralCode: stashedReferralCode, newUserId: uid }),
+              });
+              const result = await resp.json();
+              if (result?.referrerFound) {
+                setProfile((p) => (p ? { ...p, points: (p.points ?? 0) + 200 } : p));
+              }
+            } catch (e) {
+              console.error("Referral processing error:", e);
+            } finally {
+              sessionStorage.removeItem("noctu_referral_code");
+            }
+          }
+          sessionStorage.removeItem("noctu_signup_phone");
         }
 
     
@@ -402,6 +456,29 @@ useEffect(() => {
       navigator.clipboard.writeText(profile.referralCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  }
+
+  async function shareReferral() {
+    if (!profile?.referralCode) return;
+    const shareUrl = `${window.location.origin}/signup?ref=${profile.referralCode}`;
+    const shareText = `Join me on Noctü 🌙 Sign up with my link and we both get bonus points: ${shareUrl}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Join Noctü", text: shareText, url: shareUrl });
+        return;
+      } catch (e) {
+        // user cancelled the share sheet — fall through to clipboard copy
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } catch (e) {
+      console.error("Share/copy failed:", e);
     }
   }
 
@@ -665,16 +742,25 @@ useEffect(() => {
 
             <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16, marginBottom: 16 }}>
               <div style={{ color: "#aaa", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 8 }}>REFERRAL CODE</div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 10 }}>
                 <div style={{ color: "#BF00FF", fontSize: 22, fontWeight: 800, letterSpacing: 3 }}>
                   {profile?.referralCode || "NOCTU"}
                 </div>
                 <button
                   onClick={copyReferral}
-                  style={{ background: "#BF00FF22", border: "1px solid #BF00FF", borderRadius: 8, padding: "8px 14px", color: "#BF00FF", fontSize: 12, cursor: "pointer", fontWeight: 600 }}
+                  style={{ background: "transparent", border: "1px solid #444", borderRadius: 8, padding: "8px 12px", color: "#ccc", fontSize: 12, cursor: "pointer", fontWeight: 600 }}
                 >
-                  {copied ? "Copied!" : "Share +150 pts"}
+                  {copied ? "Copied!" : "Copy code"}
                 </button>
+              </div>
+              <button
+                onClick={shareReferral}
+                style={{ width: "100%", background: "#BF00FF22", border: "1px solid #BF00FF", borderRadius: 8, padding: "10px 14px", color: "#BF00FF", fontSize: 13, cursor: "pointer", fontWeight: 700 }}
+              >
+                {shareCopied ? "Link copied — send it! 📤" : "Share invite link · you get +100 pts"}
+              </button>
+              <div style={{ color: "#666", fontSize: 11, marginTop: 8, textAlign: "center" }}>
+                Your friend gets +200 pts for signing up with your link.
               </div>
             </div>
 
@@ -699,19 +785,43 @@ useEffect(() => {
               </div>
             )}
 
-            {activity.length > 0 && (
-              <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
-                <div style={{ color: "#aaa", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 12 }}>RECENT ACTIVITY</div>
-                {activity.map((a) => (
-                  <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ color: "#ccc", fontSize: 13 }}>{a.description ?? "Activity"}</div>
-                    <div style={{ color: "#BF00FF", fontSize: 13, fontWeight: 700 }}>
+            <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
+              <div style={{ color: "#aaa", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 12 }}>RECENT ACTIVITY</div>
+              {activity.length === 0 && (
+                <div style={{ color: "#555", fontSize: 13, textAlign: "center", padding: "12px 0" }}>
+                  No activity yet — get scanned at the door or bar to start earning.
+                </div>
+              )}
+              {activity.map((a) => {
+                const meta = activityMeta(a.type);
+                return (
+                  <div
+                    key={a.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      marginBottom: 12,
+                      paddingBottom: 12,
+                      borderBottom: "1px solid #1a0030",
+                    }}
+                  >
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", minWidth: 0 }}>
+                      <div style={{ fontSize: 18, flexShrink: 0 }}>{meta.icon}</div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{meta.label}</div>
+                        <div style={{ color: "#999", fontSize: 12, marginTop: 2 }}>{a.description ?? "Activity"}</div>
+                        <div style={{ color: "#555", fontSize: 11, marginTop: 3 }}>{activityWhen(a.createdAt)}</div>
+                      </div>
+                    </div>
+                    <div style={{ color: "#BF00FF", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
                       {a.points ? `+${a.points}` : "•"}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
           </div>
         )}
 
