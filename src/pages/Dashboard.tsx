@@ -552,9 +552,18 @@ useEffect(() => {
 
       <div style={{ padding: "16px 20px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img src="/assets/noctu-logo-transparent.png" alt="NOCTU" style={{ height: 64, width: "auto" }} />
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#1a0030", border: "1px solid #3a0055", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-          <img src="/assets/noctu-owl-icon.png" alt="Notifications" style={{ width: 22, height: 22 }} />
-        </div>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "#1a0030", border: "1px solid #3a0055", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", overflow: "hidden" }}>
+  <img
+    src="/assets/noctu-logo-transparent.png"
+    alt="Notifications"
+    style={{
+      width: "180%",
+      height: "180%",
+      objectFit: "contain",
+      objectPosition: "20% center",
+    }}
+  />
+</div>
       </div>
 
       <div style={{ padding: "0 20px" }}>
