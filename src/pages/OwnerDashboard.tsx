@@ -246,23 +246,7 @@ export default function OwnerDashboard() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              background: "linear-gradient(135deg, #ff6b9d, #BF00FF)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 18,
-            }}
-          >
-            🔑
-          </div>
-          <span style={{ color: "#ff6b9d", fontWeight: 900, fontSize: 18, letterSpacing: 2 }}>
-            NOCTÜ
-          </span>
+          <img src="/assets/noctu-logo-transparent.png" alt="NOCTU" style={{ height: 56, width: "auto" }} />
         </div>
 
         <button

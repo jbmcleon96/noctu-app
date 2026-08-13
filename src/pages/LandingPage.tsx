@@ -26,7 +26,7 @@ export default function LandingPage() {
           <img
             src={noctuWordmark}
             alt="Noctu"
-            style={{ height: 34, width: 'auto', display: 'block' }}
+            style={{ height: 52, width: 'auto', display: 'block' }}
           />
         </div>
 
