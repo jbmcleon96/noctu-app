@@ -29,7 +29,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<MemberSignUpPage />} />
+          <Route path="/" element={<SignInPage />} />
           <Route path="/landing" element={<LandingPage />} />
           <Route path="/signin" element={<SignInPage />} />
           <Route path="/signup" element={<MemberSignUpPage />} />
