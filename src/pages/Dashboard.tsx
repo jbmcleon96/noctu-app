@@ -876,7 +876,7 @@ useEffect(() => {
           </div>
         )}
 
-        {activeTab === 2 && (
+        {activeTab === 3 && (
           <div style={{ paddingTop: 24 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 24 }}>
               <div
