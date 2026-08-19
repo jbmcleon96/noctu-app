@@ -55,6 +55,11 @@ interface Club {
   state?: string;
   coverURL?: string;
   logoURL?: string;
+  perks?: {
+    starter?: string;
+    vip?: string;
+    elite?: string;
+  };
 }
 
 interface EventItem {
@@ -1072,21 +1077,28 @@ useEffect(() => {
             {clubs.length > 0 && (
               <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16, marginBottom: 16 }}>
                 <div style={{ color: "#aaa", fontSize: 12, fontWeight: 600, letterSpacing: 1, marginBottom: 12 }}>MY CLUBS</div>
-                {clubs.map((c) => (
-                  <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#BF00FF33", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {c.logoURL ? <img src={c.logoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏛️"}
-                    </div>
-                    <div>
-                      <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{c.clubName ?? "Club"}</div>
-                      <div style={{ color: "#888", fontSize: 12 }}>
-                        {c.city ?? ""}
-                        {c.city && c.state ? ", " : ""}
-                        {c.state ?? ""}
+                {clubs.map((c) => {
+                  const perkKey = currentSubscription as "free" | "starter" | "vip" | "elite";
+                  const clubPerk = perkKey !== "free" ? c.perks?.[perkKey] : undefined;
+                  return (
+                    <div key={c.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#BF00FF33", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {c.logoURL ? <img src={c.logoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏛️"}
+                      </div>
+                      <div>
+                        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{c.clubName ?? "Club"}</div>
+                        <div style={{ color: "#888", fontSize: 12 }}>
+                          {c.city ?? ""}
+                          {c.city && c.state ? ", " : ""}
+                          {c.state ?? ""}
+                        </div>
+                        {clubPerk && (
+                          <div style={{ color: "#BF00FF", fontSize: 12, marginTop: 4 }}>✨ {clubPerk}</div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

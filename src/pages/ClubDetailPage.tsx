@@ -12,6 +12,11 @@ interface ClubDetail {
   logoURL?: string;
   bio?: string;
   coverPrice?: number;
+  perks?: {
+    starter?: string;
+    vip?: string;
+    elite?: string;
+  };
 }
 
 export default function ClubDetailPage() {
@@ -94,6 +99,31 @@ export default function ClubDetailPage() {
 
           <div className="noctu-card-title">About</div>
           <p className="noctu-subtext">{club.bio || "This club hasn't added a bio yet."}</p>
+
+          {(club.perks?.starter || club.perks?.vip || club.perks?.elite) && (
+            <>
+              <div className="noctu-divider" />
+              <div className="noctu-card-title">What you unlock</div>
+              {club.perks?.starter && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ color: "#BF00FF", fontSize: 12, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>STARTER</div>
+                  <p className="noctu-subtext" style={{ margin: 0 }}>{club.perks.starter}</p>
+                </div>
+              )}
+              {club.perks?.vip && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ color: "#ff6b9d", fontSize: 12, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>VIP</div>
+                  <p className="noctu-subtext" style={{ margin: 0 }}>{club.perks.vip}</p>
+                </div>
+              )}
+              {club.perks?.elite && (
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ color: "#ffd700", fontSize: 12, fontWeight: 700, letterSpacing: 0.5, marginBottom: 2 }}>ELITE</div>
+                  <p className="noctu-subtext" style={{ margin: 0 }}>{club.perks.elite}</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

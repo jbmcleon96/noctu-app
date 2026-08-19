@@ -33,6 +33,11 @@ interface ClubProfile {
   autoMessageEnabled: boolean;
   showBirthdays: boolean;
   subscription: string;
+  perks?: {
+    starter?: string;
+    vip?: string;
+    elite?: string;
+  };
 }
 
 interface Member {
@@ -2085,6 +2090,48 @@ useEffect(() => {
     />
   </div>
 </div>
+
+      <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
+        <div style={{ color: "#aaa", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 4 }}>
+          TIER PERKS
+        </div>
+        <div style={{ color: "#666", fontSize: 12, marginBottom: 12 }}>
+          Tell members what each tier unlocks at your club (e.g. "Skip the line", "$10 off cover", "30% off bottles").
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Starter perks</div>
+          <textarea
+            value={clubDraft.perks?.starter || ""}
+            onChange={(e) => setClubDraft((prev) => ({ ...prev, perks: { ...prev.perks, starter: e.target.value } }))}
+            placeholder="e.g. Skip the line, $5 off cover"
+            rows={2}
+            style={{ ...fStyle, resize: "vertical", fontFamily: "inherit" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>VIP perks</div>
+          <textarea
+            value={clubDraft.perks?.vip || ""}
+            onChange={(e) => setClubDraft((prev) => ({ ...prev, perks: { ...prev.perks, vip: e.target.value } }))}
+            placeholder="e.g. Skip the line, $10 off cover, priority entry"
+            rows={2}
+            style={{ ...fStyle, resize: "vertical", fontFamily: "inherit" }}
+          />
+        </div>
+
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Elite perks</div>
+          <textarea
+            value={clubDraft.perks?.elite || ""}
+            onChange={(e) => setClubDraft((prev) => ({ ...prev, perks: { ...prev.perks, elite: e.target.value } }))}
+            placeholder="e.g. Free cover, 30% off bottles, VIP table priority"
+            rows={2}
+            style={{ ...fStyle, resize: "vertical", fontFamily: "inherit" }}
+          />
+        </div>
+      </div>
 
       <button
         onClick={save}

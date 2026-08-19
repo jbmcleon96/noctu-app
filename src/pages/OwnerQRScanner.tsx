@@ -18,6 +18,7 @@ interface ScanResult {
   points: number;
   tier: string;
   message: string;
+  perk?: string;
 }
 
 export default function OwnerQRScanner({ clubId }: Props) {
@@ -101,7 +102,10 @@ export default function OwnerQRScanner({ clubId }: Props) {
 
       // Get club name for activity label
       const clubSnap = await getDoc(doc(db, "clubs", clubId));
-      const clubName = clubSnap.exists() ? (clubSnap.data().clubName ?? "the club") : "the club";
+      const clubData = clubSnap.exists() ? clubSnap.data() : {};
+      const clubName = clubData.clubName ?? "the club";
+      const perkKey = (member.subscription ?? "free").toLowerCase();
+      const memberPerk = clubData.perks?.[perkKey] || "";
 
       // Award points to member
       await updateDoc(doc(db, "users", uid), {
@@ -143,6 +147,7 @@ export default function OwnerQRScanner({ clubId }: Props) {
         points: pointsEarned,
         tier: member.tier || "Access",
         message: `+${pointsEarned} pts awarded!`,
+        perk: memberPerk,
       });
     } catch (e) {
       console.error(e);
@@ -275,6 +280,12 @@ export default function OwnerQRScanner({ clubId }: Props) {
                 +{result.points} pts
               </div>
               <div style={{ color: "#888", fontSize: 13 }}>{mode === "door" ? "🚪 Door scan" : "🍹 Bar scan"} recorded</div>
+              {result.perk && (
+                <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(191,0,255,0.12)", border: "1px solid rgba(191,0,255,0.35)", borderRadius: 10 }}>
+                  <div style={{ color: "#BF00FF", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, marginBottom: 3 }}>APPLY THIS PERK</div>
+                  <div style={{ color: "#fff", fontSize: 14 }}>{result.perk}</div>
+                </div>
+              )}
             </>
           ) : (
             <div style={{ color: "#ff3366", fontSize: 14 }}>{result.message}</div>
