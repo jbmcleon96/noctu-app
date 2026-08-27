@@ -60,6 +60,7 @@ interface Club {
     vip?: string;
     elite?: string;
   };
+  primaryColor?: string;
 }
 
 interface EventItem {
@@ -1082,11 +1083,11 @@ useEffect(() => {
                   const clubPerk = perkKey !== "free" ? c.perks?.[perkKey] : undefined;
                   return (
                     <div key={c.id} style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: "#BF00FF33", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: c.primaryColor ? `${c.primaryColor}33` : "#BF00FF33", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         {c.logoURL ? <img src={c.logoURL} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : "🏛️"}
                       </div>
                       <div>
-                        <div style={{ color: "#fff", fontSize: 14, fontWeight: 600 }}>{c.clubName ?? "Club"}</div>
+                        <div style={{ color: c.primaryColor || "#fff", fontSize: 14, fontWeight: 600 }}>{c.clubName ?? "Club"}</div>
                         <div style={{ color: "#888", fontSize: 12 }}>
                           {c.city ?? ""}
                           {c.city && c.state ? ", " : ""}

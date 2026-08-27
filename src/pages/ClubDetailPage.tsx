@@ -17,6 +17,7 @@ interface ClubDetail {
     vip?: string;
     elite?: string;
   };
+  primaryColor?: string;
 }
 
 export default function ClubDetailPage() {
@@ -84,14 +85,14 @@ export default function ClubDetailPage() {
             style={{ width: "100%", height: 180, objectFit: "cover", borderRadius: 16, marginBottom: 16 }}
           />
 
-          <h1 className="noctu-heading">{club.clubName || "Unnamed Club"}</h1>
+          <h1 className="noctu-heading" style={club.primaryColor ? { color: club.primaryColor } : undefined}>{club.clubName || "Unnamed Club"}</h1>
           {(club.city || club.state) && (
             <p className="noctu-subtext" style={{ marginBottom: 10 }}>
               {[club.city, club.state].filter(Boolean).join(", ")}
             </p>
           )}
 
-          <span className="noctu-badge">
+          <span className="noctu-badge" style={club.primaryColor ? { borderColor: club.primaryColor, color: club.primaryColor } : undefined}>
             Cover tonight: {club.coverPrice != null ? `$${club.coverPrice.toFixed(2)}` : "TBA"}
           </span>
 

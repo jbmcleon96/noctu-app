@@ -38,6 +38,7 @@ interface ClubProfile {
     vip?: string;
     elite?: string;
   };
+  primaryColor?: string;
 }
 
 interface Member {
@@ -222,9 +223,9 @@ export default function OwnerDashboard() {
 
   const upcomingEvents = events.filter((e) => e.date >= Date.now()).slice(0, 3);
 
-  const starterRev = members.filter((m) => m.subscription === "starter").length * 15;
-  const vipRev = members.filter((m) => m.subscription === "vip").length * 35;
-  const eliteRev = members.filter((m) => m.subscription === "elite").length * 75;
+  const starterRev = members.filter((m) => m.subscription === "starter").length * 9.99;
+  const vipRev = members.filter((m) => m.subscription === "vip").length * 19.99;
+  const eliteRev = members.filter((m) => m.subscription === "elite").length * 49.99;
   const totalMRR = starterRev + vipRev + eliteRev;
   const noctuFee = members.length * 3 + totalMRR * 0.05;
   const clubShare = totalMRR - noctuFee;
@@ -1905,6 +1906,8 @@ useEffect(() => {
         autoMessageEnabled: !!clubDraft.autoMessageEnabled,
         showBirthdays: !!clubDraft.showBirthdays,
         subscription: clubDraft.subscription || "basic",
+        perks: clubDraft.perks || {},
+        primaryColor: clubDraft.primaryColor || "",
       },
       { merge: true }
     );
@@ -2090,6 +2093,24 @@ useEffect(() => {
     />
   </div>
 </div>
+
+      <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+        <div style={{ color: "#aaa", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 4 }}>
+          BRANDING
+        </div>
+        <div style={{ color: "#666", fontSize: 12, marginBottom: 12 }}>
+          Set your club's accent color. Members see this color when viewing your club's page.
+        </div>
+        <div style={{ marginBottom: 4 }}>
+          <div style={{ color: "#ccc", fontSize: 13, marginBottom: 6 }}>Primary color</div>
+          <input
+            type="color"
+            value={clubDraft.primaryColor || "#BF00FF"}
+            onChange={(e) => setClubDraft((prev) => ({ ...prev, primaryColor: e.target.value }))}
+            style={{ width: 60, height: 40, border: "1px solid #2a0040", borderRadius: 8, cursor: "pointer", background: "none" }}
+          />
+        </div>
+      </div>
 
       <div style={{ background: "#110018", border: "1px solid #2a0040", borderRadius: 14, padding: 16 }}>
         <div style={{ color: "#aaa", fontSize: 11, fontWeight: 600, letterSpacing: 1, marginBottom: 4 }}>
