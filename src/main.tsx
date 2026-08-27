@@ -15,6 +15,8 @@ import OwnerSignInPage from "./pages/OwnerSignInPage";
 import OwnerSignUpPage from "./pages/OwnerSignUpPage";
 import SignInPage from "./pages/SignInPage";
 import { AuthProvider } from "./providers/AuthProvider";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
 
 function AdminPlaceholder() {
   return (
@@ -44,6 +46,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Route path="/owner-onboarding" element={<OwnerOnboarding />} />
           <Route path="/owner-qr-scanner" element={<OwnerQRScanner clubId="demo-club" />} />
           <Route path="/admin" element={<AdminPlaceholder />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfServicePage />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
