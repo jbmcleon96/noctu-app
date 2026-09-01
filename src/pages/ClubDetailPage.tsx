@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import "../styles/noctu-theme.css";
 
 interface ClubDetail {
@@ -25,6 +26,15 @@ export default function ClubDetailPage() {
   const navigate = useNavigate();
   const [club, setClub] = useState<ClubDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [isMember, setIsMember] = useState(false);
+  const [checkingMembership, setCheckingMembership] = useState(true);
+  const [joining, setJoining] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (u) => setUser(u));
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     if (!clubId) return;
@@ -43,6 +53,69 @@ export default function ClubDetailPage() {
     }
     loadClub();
   }, [clubId]);
+
+  useEffect(() => {
+    if (!clubId || !user) {
+      setCheckingMembership(false);
+      return;
+    }
+    const safeClubId: string = clubId;
+    async function checkMembership() {
+      try {
+        const memberSnap = await getDoc(doc(db, "clubs", safeClubId, "members", user!.uid));
+        setIsMember(memberSnap.exists());
+      } catch (err) {
+        console.error("Failed to check membership:", err);
+      } finally {
+        setCheckingMembership(false);
+      }
+    }
+    checkMembership();
+  }, [clubId, user]);
+
+  async function handleJoin() {
+    if (!clubId || !user) {
+      navigate("/login");
+      return;
+    }
+    setJoining(true);
+    try {
+      let displayName = user.displayName || "";
+      let username = "";
+      let photoURL = user.photoURL || "";
+
+      try {
+        const userSnap = await getDoc(doc(db, "users", user.uid));
+        if (userSnap.exists()) {
+          const ud = userSnap.data() as { displayName?: string; username?: string; photoURL?: string };
+          displayName = ud.displayName || displayName;
+          username = ud.username || username;
+          photoURL = ud.photoURL || photoURL;
+        }
+      } catch (err) {
+        console.error("Failed to load user profile:", err);
+      }
+
+      await setDoc(doc(db, "clubs", clubId, "members", user.uid), {
+        id: user.uid,
+        displayName: displayName || user.email || "Member",
+        username: username || "",
+        photoURL: photoURL || "",
+        points: 100,
+        tier: "Free",
+        subscription: "free",
+        birthday: "",
+        joinedAt: Date.now(),
+      });
+
+      setIsMember(true);
+    } catch (err) {
+      console.error("Failed to join club:", err);
+      alert("Something went wrong joining this club. Please try again.");
+    } finally {
+      setJoining(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -95,6 +168,27 @@ export default function ClubDetailPage() {
           <span className="noctu-badge" style={club.primaryColor ? { borderColor: club.primaryColor, color: club.primaryColor } : undefined}>
             Cover tonight: {club.coverPrice != null ? `$${club.coverPrice.toFixed(2)}` : "TBA"}
           </span>
+
+          <div style={{ marginTop: 16 }}>
+            {checkingMembership ? (
+              <button className="noctu-secondary-btn" disabled style={{ width: "100%" }}>
+                Checking…
+              </button>
+            ) : isMember ? (
+              <button className="noctu-secondary-btn" disabled style={{ width: "100%", opacity: 0.8 }}>
+                ✓ Joined
+              </button>
+            ) : (
+              <button
+                className="noctu-primary-btn"
+                style={{ width: "100%" }}
+                onClick={handleJoin}
+                disabled={joining}
+              >
+                {joining ? "Joining…" : "Join Club"}
+              </button>
+            )}
+          </div>
 
           <div className="noctu-divider" />
 
