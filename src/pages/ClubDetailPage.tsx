@@ -30,6 +30,7 @@ export default function ClubDetailPage() {
   const [isMember, setIsMember] = useState(false);
   const [checkingMembership, setCheckingMembership] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [justJoined, setJustJoined] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => setUser(u));
@@ -109,6 +110,10 @@ export default function ClubDetailPage() {
       });
 
       setIsMember(true);
+      setJustJoined(true);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1600);
     } catch (err) {
       console.error("Failed to join club:", err);
       alert("Something went wrong joining this club. Please try again.");
@@ -150,6 +155,24 @@ export default function ClubDetailPage() {
         >
           ← Back
         </button>
+
+        {justJoined && (
+          <div
+            style={{
+              background: "linear-gradient(135deg, #BF00FF33, #ff6b9d33)",
+              border: "1px solid #BF00FF",
+              borderRadius: 12,
+              padding: "12px 16px",
+              marginBottom: 16,
+              textAlign: "center",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            🎉 You're in! Taking you to your dashboard…
+          </div>
+        )}
 
         <div className="noctu-card">
           <img
